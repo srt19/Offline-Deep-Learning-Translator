@@ -10,7 +10,9 @@ Requirements :
 * Cutlet (Optional for Romaji Converter)
 * Jupyterlab
 
-**You need to download the model files for translation**
-/nYou can download or clone the model files from [Huggingface](https://huggingface.co/models?pipeline_tag=translation) then put it in "models" folder.
-* e.g. "models/Helsinki-NLP/opus-mt-zh-en"
-Currently only support MarianMT & MBart
+<ul>
+  <li>**You need to download the model files for translation**</li>
+  <li>You can download or clone the model files from [Huggingface](https://huggingface.co/models?pipeline_tag=translation) then put it in "models" folder.</li>
+  <li>* e.g. "models/Helsinki-NLP/opus-mt-zh-en"</li>
+  <li>Currently only support MarianMT & MBart</li>
+ </ul>
