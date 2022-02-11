@@ -14,3 +14,11 @@ Requirements :
 You can download or clone the model files from [Huggingface](https://huggingface.co/models?pipeline_tag=translation) then put it in "models" folder.
 * e.g. "models/Helsinki-NLP/opus-mt-zh-en"
 Currently only support MarianMT & MBart
+
+#How To Run The Program
+* Clone this repository
+* Install the requirements
+* Run the main.py
+
+#TO-DO
+* Fix freezing gui while loading model
