@@ -21,4 +21,4 @@ Currently only support MarianMT
 * Run the main.py
 
 # <b>TO-DO</b>
-* Fix freezing gui while loading model
+* Fix freezing gui while translating
