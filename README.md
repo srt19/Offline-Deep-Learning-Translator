@@ -19,6 +19,3 @@ Currently only support MarianMT
 * Clone this repository
 * Install the requirements
 * Run the main.py
-
-# <b>TO-DO</b>
-* Fix freezing gui while translating
