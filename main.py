@@ -13,14 +13,44 @@ class Worker(QObject):
 	
 	#Loading Model
 	def load_job(self):
-		from transformers import MarianTokenizer, AutoModelForSeq2SeqLM
+		global lang
+		if lang == 8:
+			from transformers import MBartForConditionalGeneration, MBartTokenizer
+		else:
+			from transformers import MarianTokenizer, AutoModelForSeq2SeqLM
 
 		global mname
 		global model
 		global tokenizer
-		tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
-		model = AutoModelForSeq2SeqLM.from_pretrained(mname, local_files_only=True)
+		
+		if lang == 8:
+			tokenizer = MBartTokenizer.from_pretrained("models/ken11/mbart-ja-en", local_files_only=True)
+			model = MBartForConditionalGeneration.from_pretrained("models/ken11/mbart-ja-en", local_files_only=True)
+			
+		else:
+			tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
+			model = AutoModelForSeq2SeqLM.from_pretrained(mname, local_files_only=True)
+			
 		print("Loading Finished")
+		self.finished.emit()
+		
+	#Translating
+	def tl_job(self):
+		global tl_text
+		global decoded
+		print("Translating")
+		if lang == 8:
+			inputs = tokenizer(tl_text, return_tensors="pt")
+			translated_tokens = model.generate(**inputs, decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"], early_stopping=True, max_length=48)
+			decoded = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)[0]
+			
+		else:
+			input_ids = tokenizer.encode(tl_text, return_tensors="pt")
+			outputs = model.generate(input_ids)
+			decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+		#main = Ui_MainWindow()
+		print("Completed")	
 		self.finished.emit()
 
 class Ui_MainWindow(object):
@@ -89,6 +119,7 @@ class Ui_MainWindow(object):
 
 	#Get Language Number
 	def lang_select(self, i):
+		global lang
 		lang = i
 	
 	#Loading Model Thread
@@ -118,6 +149,8 @@ class Ui_MainWindow(object):
 		elif lang == 7:
 			print("English to Vietnam Selected")
 			mname = "models/Helsinki-NLP/opus-mt-en-vi"
+		elif lang == 8:
+			print("Japanese to English MBart Selected")
 		print("Loading Model Files")
 		
 		self.thread = QThread()
@@ -136,15 +169,28 @@ class Ui_MainWindow(object):
 			lambda: self.LoadModel.setEnabled(True)
 		)
 	
-	#Translating
+	#Translate Thread
 	def tl_run(self):
+		global tl_text
 		tl_text = self.input.toPlainText()
-		print("Translating")
-		input_ids = tokenizer.encode(tl_text, return_tensors="pt")
-		outputs = model.generate(input_ids)
-		decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
-		self.output.setPlainText(decoded)
-		print("Completed")
+		self.thread = QThread()
+		self.worker = Worker()
+		self.worker.moveToThread(self.thread)
+	
+		self.thread.started.connect(self.worker.tl_job)
+		self.worker.finished.connect(self.thread.quit)
+		self.worker.finished.connect(self.worker.deleteLater)
+		self.thread.finished.connect(self.thread.deleteLater)
+
+		self.thread.start()
+
+		self.Translate.setEnabled(False)
+		self.thread.finished.connect(
+			lambda: self.output.setPlainText(decoded)
+		)
+		self.thread.finished.connect(
+			lambda: self.Translate.setEnabled(True)
+		)
 
 	def retranslateUi(self, MainWindow):
 		_translate = QCoreApplication.translate
@@ -164,6 +210,7 @@ class Ui_MainWindow(object):
 		self.lang_list.addItem("English to Indonesia")
 		self.lang_list.addItem("Vietnam to English")
 		self.lang_list.addItem("English to Vietnam")
+		self.lang_list.addItem("JA to EN MBart")
 
 if __name__ == "__main__":
 	app = QApplication(sys.argv)
