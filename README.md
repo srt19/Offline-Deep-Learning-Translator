@@ -7,7 +7,7 @@ Requirements :
 * Pytorch
 * Sentencepiece
 
-** You need to download or clone the model files from [Huggingface](https://huggingface.co/models?pipeline_tag=translation) then put it in "models" folder.\
+<b>You need to download or clone the model files from [Huggingface](https://huggingface.co/models?pipeline_tag=translation) then put it in "models" folder.</b>
 * e.g. "models/Helsinki-NLP/opus-mt-zh-en"
 Currently only support MarianMT
 
