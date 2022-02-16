@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtCore import (
+from PyQt6.QtCore import(
 	Qt, QRect, QSize, QMetaObject, QCoreApplication, QObject, QThread, pyqtSignal
 )
 from PyQt6.QtGui import QFont
@@ -24,8 +24,8 @@ class Worker(QObject):
 		global tokenizer
 		
 		if lang == 8:
-			tokenizer = MBartTokenizer.from_pretrained("ken11/mbart-ja-en", local_files_only=True)
-			model = MBartForConditionalGeneration.from_pretrained("ken11/mbart-ja-en", local_files_only=True)
+			tokenizer = MBartTokenizer.from_pretrained(".models/ken11/mbart-ja-en", local_files_only=True)
+			model = MBartForConditionalGeneration.from_pretrained(".models/ken11/mbart-ja-en", local_files_only=True)
 			
 		else:
 			tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
