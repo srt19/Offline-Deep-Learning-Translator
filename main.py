@@ -3,8 +3,8 @@ from PyQt6.QtCore import (
 	Qt, QRect, QSize, QMetaObject, QCoreApplication, QObject, QThread, pyqtSignal
 )
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (
-	QWidget, QPushButton, QComboBox, QPlainTextEdit, QFrame, QMenuBar, QStatusBar, QApplication, QMainWindow
+from PyQt6.QtWidgets import(
+	QWidget, QGridLayout, QPushButton, QComboBox, QPlainTextEdit, QApplication, QMainWindow
 )
 
 class Worker(QObject):
@@ -24,8 +24,8 @@ class Worker(QObject):
 		global tokenizer
 		
 		if lang == 8:
-			tokenizer = MBartTokenizer.from_pretrained("models/ken11/mbart-ja-en", local_files_only=True)
-			model = MBartForConditionalGeneration.from_pretrained("models/ken11/mbart-ja-en", local_files_only=True)
+			tokenizer = MBartTokenizer.from_pretrained("ken11/mbart-ja-en", local_files_only=True)
+			model = MBartForConditionalGeneration.from_pretrained("ken11/mbart-ja-en", local_files_only=True)
 			
 		else:
 			tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
@@ -56,67 +56,48 @@ class Worker(QObject):
 class Ui_MainWindow(object):
 	def setupUi(self, MainWindow):
 		MainWindow.setObjectName("MainWindow")
-		MainWindow.setEnabled(True)
 		MainWindow.resize(800, 600)
 		self.centralwidget = QWidget(MainWindow)
 		self.centralwidget.setObjectName("centralwidget")
-		self.LoadModel = QPushButton(self.centralwidget)
-		self.LoadModel.setGeometry(QRect(340, 40, 120, 30))
+		self.gridLayout = QGridLayout(self.centralwidget)
+		self.gridLayout.setObjectName("gridLayout")
+		self.loadmodel = QPushButton(self.centralwidget)
 		font = QFont()
-		font.setFamily("Arial")
-		font.setPointSize(10)
-		self.LoadModel.setFont(font)
-		self.LoadModel.setIconSize(QSize(16, 16))
-		self.LoadModel.setAutoDefault(False)
-		self.LoadModel.setDefault(False)
-		self.LoadModel.setFlat(False)
-		self.LoadModel.setObjectName("LoadModel")
-		self.Translate = QPushButton(self.centralwidget)
-		self.Translate.setGeometry(QRect(350, 100, 100, 30))
-		font.setFamily("Arial")
+		font.setPointSize(9)
+		self.loadmodel.setFont(font)
+		self.loadmodel.setObjectName("loadmodel")
+		self.gridLayout.addWidget(self.loadmodel, 0, 5, 1, 1)
+		self.translate = QPushButton(self.centralwidget)
 		font.setPointSize(12)
-		self.Translate.setFont(font)
-		self.Translate.setObjectName("Translate")
+		self.translate.setFont(font)
+		self.translate.setObjectName("translate")
+		self.gridLayout.addWidget(self.translate, 1, 0, 1, 6)
 		self.lang_list = QComboBox(self.centralwidget)
-		self.lang_list.setGeometry(QRect(330, 10, 80, 25))
-		font.setFamily("Arial")
-		font.setPointSize(10)
-		self.lang_list.setFont(font)
-		self.lang_list.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
 		self.lang_list.setObjectName("lang_list")
-		self.output = QPlainTextEdit(self.centralwidget)
-		self.output.setGeometry(QRect(410, 150, 380, 400))
-		font.setFamily("Arial")
+		self.gridLayout.addWidget(self.lang_list, 0, 0, 1, 5)
+		self.inputs = QPlainTextEdit(self.centralwidget)
+		self.inputs.setMinimumSize(QSize(380, 430))
 		font.setPointSize(11)
-		self.output.setFont(font)
-		self.output.setFrameShadow(QFrame.Shadow.Plain)
-		self.output.setObjectName("output")
-		self.input = QPlainTextEdit(self.centralwidget)
-		self.input.setGeometry(QRect(10, 150, 380, 400))
-		font.setFamily("Arial")
+		self.inputs.setFont(font)
+		self.inputs.setObjectName("inputs")
+		self.gridLayout.addWidget(self.inputs, 2, 0, 1, 1)
+		self.outputs = QPlainTextEdit(self.centralwidget)
+		self.outputs.setMinimumSize(QSize(380, 430))
 		font.setPointSize(11)
-		self.input.setFont(font)
-		self.input.setFrameShadow(QFrame.Shadow.Plain)
-		self.input.setObjectName("input")
+		self.outputs.setFont(font)
+		self.outputs.setObjectName("outputs")
+		self.gridLayout.addWidget(self.outputs, 2, 5, 1, 1)
 		MainWindow.setCentralWidget(self.centralwidget)
-		self.menubar = QMenuBar(MainWindow)
-		self.menubar.setGeometry(QRect(0, 0, 800, 26))
-		self.menubar.setObjectName("menubar")
-		MainWindow.setMenuBar(self.menubar)
-		self.statusbar = QStatusBar(MainWindow)
-		self.statusbar.setObjectName("statusbar")
-		MainWindow.setStatusBar(self.statusbar)
-
 		#Event Stuff
 		global lang
 		lang = 0
-		self.LoadModel.clicked.connect(self.load_run)
-		self.Translate.clicked.connect(self.tl_run)
+		self.loadmodel.clicked.connect(self.load_run)
+		self.translate.clicked.connect(self.tl_run)
 		self.lang_list.currentIndexChanged.connect(self.lang_select)
 
 		self.retranslateUi(MainWindow)
 		QMetaObject.connectSlotsByName(MainWindow)
-
+		
 	#Get Language Number
 	def lang_select(self, i):
 		global lang
@@ -127,28 +108,28 @@ class Ui_MainWindow(object):
 		global mname		
 		if lang == 0:
 			print("Japanese to English Selected")
-			mname = "models/Helsinki-NLP/opus-mt-ja-en"
+			mname = ".models/Helsinki-NLP/opus-mt-ja-en"
 		elif lang == 1:
 			print("English to Japanese Selected")
-			mname = "models/Helsinki-NLP/opus-mt-en-ja"
+			mname = ".models/Helsinki-NLP/opus-mt-en-ja"
 		elif lang == 2:
 			print("Chinese to English Selected")
-			mname = "models/Helsinki-NLP/opus-mt-zh-en"
+			mname = ".models/Helsinki-NLP/opus-mt-zh-en"
 		elif lang == 3:
 			print("English to Chinese Selected")
-			mname = "models/Helsinki-NLP/opus-mt-en-zh"
+			mname = ".models/Helsinki-NLP/opus-mt-en-zh"
 		elif lang == 4:
 			print("Indonesia to English Selected")
-			mname = "models/Helsinki-NLP/opus-mt-id-en"
+			mname = ".models/Helsinki-NLP/opus-mt-id-en"
 		elif lang == 5:
 			print("English to Indonesia Selected")
-			mname = "models/Helsinki-NLP/opus-mt-en-id"
+			mname = ".models/Helsinki-NLP/opus-mt-en-id"
 		elif lang == 6:
 			print("Vietnam to English Selected")
-			mname = "models/Helsinki-NLP/opus-mt-vi-en"
+			mname = ".models/Helsinki-NLP/opus-mt-vi-en"
 		elif lang == 7:
 			print("English to Vietnam Selected")
-			mname = "models/Helsinki-NLP/opus-mt-en-vi"
+			mname = ".models/Helsinki-NLP/opus-mt-en-vi"
 		elif lang == 8:
 			print("Japanese to English MBart Selected")
 		print("Loading Model Files")
@@ -164,15 +145,15 @@ class Ui_MainWindow(object):
 		
 		self.thread.start()
 		
-		self.LoadModel.setEnabled(False)
+		self.loadmodel.setEnabled(False)
 		self.thread.finished.connect(
-			lambda: self.LoadModel.setEnabled(True)
+			lambda: self.loadmodel.setEnabled(True)
 		)
 	
 	#Translate Thread
 	def tl_run(self):
 		global tl_text
-		tl_text = self.input.toPlainText()
+		tl_text = self.inputs.toPlainText()
 		self.thread = QThread()
 		self.worker = Worker()
 		self.worker.moveToThread(self.thread)
@@ -184,23 +165,25 @@ class Ui_MainWindow(object):
 
 		self.thread.start()
 
-		self.Translate.setEnabled(False)
+		self.translate.setEnabled(False)
 		self.thread.finished.connect(
-			lambda: self.output.setPlainText(decoded)
+			lambda: self.outputs.setPlainText(decoded)
 		)
 		self.thread.finished.connect(
-			lambda: self.Translate.setEnabled(True)
+			lambda: self.translate.setEnabled(True)
 		)
 
 	def retranslateUi(self, MainWindow):
 		_translate = QCoreApplication.translate
 		MainWindow.setWindowTitle(_translate("MainWindow", "Offline Translator"))
-		self.LoadModel.setText(_translate("MainWindow", "Load Model"))
-		self.Translate.setText(_translate("MainWindow", "Translate"))
-		self.output.setToolTip(_translate("MainWindow", "Translated Text Goes Here"))
-		self.output.setPlaceholderText(_translate("MainWindow", "Output Text Here"))
-		self.input.setToolTip(_translate("MainWindow", "Your Text Goes Here"))
-		self.input.setPlaceholderText(_translate("MainWindow", "Input Your Text Here"))
+		self.loadmodel.setToolTip(_translate("MainWindow", "<html><head/><body><p>Click to load model for translation</p></body></html>"))
+		self.loadmodel.setText(_translate("MainWindow", "Load Model"))
+		self.translate.setToolTip(_translate("MainWindow", "<html><head/><body><p>Click to start translating</p></body></html>"))
+		self.translate.setText(_translate("MainWindow", "Translate"))
+		self.inputs.setToolTip(_translate("MainWindow", "<html><head/><body><p>Input your text here</p></body></html>"))
+		self.inputs.setPlaceholderText(_translate("MainWindow", "Input your text here"))
+		self.outputs.setToolTip(_translate("MainWindow", "<html><head/><body><p>Your translated text goes here</p></body></html>"))
+		self.outputs.setPlaceholderText(_translate("MainWindow", "Output text goes here"))
 		#Language List
 		self.lang_list.addItem("Japanese to English")
 		self.lang_list.addItem("English to Japanese")
@@ -213,6 +196,7 @@ class Ui_MainWindow(object):
 		self.lang_list.addItem("JA to EN MBart")
 
 if __name__ == "__main__":
+	import sys
 	app = QApplication(sys.argv)
 	MainWindow = QMainWindow()
 	ui = Ui_MainWindow()
