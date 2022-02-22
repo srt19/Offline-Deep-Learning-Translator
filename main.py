@@ -1,190 +1,69 @@
 import sys
-from PyQt6.QtCore import(
-	Qt, QRect, QSize, QMetaObject, QCoreApplication, QObject, QThread, pyqtSignal
-)
-from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import(
-	QWidget, QGridLayout, QPushButton, QComboBox, QPlainTextEdit, QApplication, QMainWindow
+import gc
+from PyQt6.QtCore import QSize, QObject, QThread, pyqtSignal
+from PyQt6.QtWidgets import (
+	QGridLayout, QPushButton, QPlainTextEdit, QComboBox, QWidget, QApplication, QMainWindow
 )
 
 class Worker(QObject):
 	finished = pyqtSignal()
-	progress = pyqtSignal(int)
 	
-	#Loading Model
 	def load_job(self):
 		global lang
-		if lang == 8:
-			from transformers import MBartForConditionalGeneration, MBartTokenizer
-		else:
-			from transformers import MarianTokenizer, AutoModelForSeq2SeqLM
-
 		global mname
-		global model
 		global tokenizer
-		
-		if lang == 8:
-			tokenizer = MBartTokenizer.from_pretrained(".models/ken11/mbart-ja-en", local_files_only=True)
-			model = MBartForConditionalGeneration.from_pretrained(".models/ken11/mbart-ja-en", local_files_only=True)
-			
-		else:
-			tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
-			model = AutoModelForSeq2SeqLM.from_pretrained(mname, local_files_only=True)
-			
-		print("Loading Finished")
-		self.finished.emit()
-		
-	#Translating
-	def tl_job(self):
-		global tl_text
-		global decoded
-		print("Translating")
-		if lang == 8:
-			inputs = tokenizer(tl_text, return_tensors="pt")
-			translated_tokens = model.generate(**inputs, decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"], early_stopping=True, max_length=48)
-			decoded = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)[0]
-			
-		else:
-			input_ids = tokenizer.encode(tl_text, return_tensors="pt")
-			outputs = model.generate(input_ids)
-			decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-		#main = Ui_MainWindow()
-		print("Completed")	
-		self.finished.emit()
-
-class Ui_MainWindow(object):
-	def setupUi(self, MainWindow):
-		MainWindow.setObjectName("MainWindow")
-		MainWindow.resize(800, 600)
-		self.centralwidget = QWidget(MainWindow)
-		self.centralwidget.setObjectName("centralwidget")
-		self.gridLayout = QGridLayout(self.centralwidget)
-		self.gridLayout.setObjectName("gridLayout")
-		self.loadmodel = QPushButton(self.centralwidget)
-		font = QFont()
-		font.setPointSize(9)
-		self.loadmodel.setFont(font)
-		self.loadmodel.setObjectName("loadmodel")
-		self.gridLayout.addWidget(self.loadmodel, 0, 5, 1, 1)
-		self.translate = QPushButton(self.centralwidget)
-		font.setPointSize(12)
-		self.translate.setFont(font)
-		self.translate.setObjectName("translate")
-		self.gridLayout.addWidget(self.translate, 1, 0, 1, 6)
-		self.lang_list = QComboBox(self.centralwidget)
-		self.lang_list.setObjectName("lang_list")
-		self.gridLayout.addWidget(self.lang_list, 0, 0, 1, 5)
-		self.inputs = QPlainTextEdit(self.centralwidget)
-		self.inputs.setMinimumSize(QSize(380, 430))
-		font.setPointSize(11)
-		self.inputs.setFont(font)
-		self.inputs.setObjectName("inputs")
-		self.gridLayout.addWidget(self.inputs, 2, 0, 1, 1)
-		self.outputs = QPlainTextEdit(self.centralwidget)
-		self.outputs.setMinimumSize(QSize(380, 430))
-		font.setPointSize(11)
-		self.outputs.setFont(font)
-		self.outputs.setObjectName("outputs")
-		self.gridLayout.addWidget(self.outputs, 2, 5, 1, 1)
-		MainWindow.setCentralWidget(self.centralwidget)
-		#Event Stuff
-		global lang
-		lang = 0
-		self.loadmodel.clicked.connect(self.load_run)
-		self.translate.clicked.connect(self.tl_run)
-		self.lang_list.currentIndexChanged.connect(self.lang_select)
-
-		self.retranslateUi(MainWindow)
-		QMetaObject.connectSlotsByName(MainWindow)
-		
-	#Get Language Number
-	def lang_select(self, i):
-		global lang
-		lang = i
-	
-	#Loading Model Thread
-	def load_run(self):
-		global mname		
-		if lang == 0:
-			print("Japanese to English Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-ja-en"
-		elif lang == 1:
-			print("English to Japanese Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-en-ja"
-		elif lang == 2:
-			print("Chinese to English Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-zh-en"
-		elif lang == 3:
-			print("English to Chinese Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-en-zh"
-		elif lang == 4:
-			print("Indonesia to English Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-id-en"
-		elif lang == 5:
-			print("English to Indonesia Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-en-id"
-		elif lang == 6:
-			print("Vietnam to English Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-vi-en"
-		elif lang == 7:
-			print("English to Vietnam Selected")
-			mname = ".models/Helsinki-NLP/opus-mt-en-vi"
-		elif lang == 8:
-			print("Japanese to English MBart Selected")
+		global model
 		print("Loading Model Files")
+		if lang_id == 8:
+			from transformers import MBartForConditionalGeneration, MBartTokenizer
+			tokenizer = MBartTokenizer.from_pretrained("mname", local_files_only=True)
+			model = MBartForConditionalGeneration.from_pretrained("mname", local_files_only=True)
+		else:
+			from transformers import MarianTokenizer, MarianMTModel
+			tokenizer = MarianTokenizer.from_pretrained(mname, local_files_only=True)
+			model = MarianMTModel.from_pretrained(mname, local_files_only=True)
+		print("Loading Model Completed")
+		self.finished.emit()
 		
-		self.thread = QThread()
-		self.worker = Worker()
-		self.worker.moveToThread(self.thread)
-		
-		self.thread.started.connect(self.worker.load_job)
-		self.worker.finished.connect(self.thread.quit)
-		self.worker.finished.connect(self.worker.deleteLater)
-		self.thread.finished.connect(self.thread.deleteLater)
-		
-		self.thread.start()
-		
-		self.loadmodel.setEnabled(False)
-		self.thread.finished.connect(
-			lambda: self.loadmodel.setEnabled(True)
-		)
-	
-	#Translate Thread
-	def tl_run(self):
-		global tl_text
-		tl_text = self.inputs.toPlainText()
-		self.thread = QThread()
-		self.worker = Worker()
-		self.worker.moveToThread(self.thread)
-	
-		self.thread.started.connect(self.worker.tl_job)
-		self.worker.finished.connect(self.thread.quit)
-		self.worker.finished.connect(self.worker.deleteLater)
-		self.thread.finished.connect(self.thread.deleteLater)
+	def tl_job(self):
+		global tokenizer
+		global model
+		global tl_output
+		if lang_id == 8:
+			inputs = tokenizer(tl_input, return_tensors="pt")
+			translated_tokens = model.generate(**inputs, decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"], early_stopping=True, max_length=48)
+			tl_output = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)[0]
+		else:
+			input_ids = tokenizer.encode(tl_input, return_tensors="pt")
+			outputs = model.generate(input_ids)
+			tl_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
+		print("Completed")
+		self.finished.emit()
 
-		self.thread.start()
-
-		self.translate.setEnabled(False)
-		self.thread.finished.connect(
-			lambda: self.outputs.setPlainText(decoded)
-		)
-		self.thread.finished.connect(
-			lambda: self.translate.setEnabled(True)
-		)
-
-	def retranslateUi(self, MainWindow):
-		_translate = QCoreApplication.translate
-		MainWindow.setWindowTitle(_translate("MainWindow", "Offline Translator"))
-		self.loadmodel.setToolTip(_translate("MainWindow", "<html><head/><body><p>Click to load model for translation</p></body></html>"))
-		self.loadmodel.setText(_translate("MainWindow", "Load Model"))
-		self.translate.setToolTip(_translate("MainWindow", "<html><head/><body><p>Click to start translating</p></body></html>"))
-		self.translate.setText(_translate("MainWindow", "Translate"))
-		self.inputs.setToolTip(_translate("MainWindow", "<html><head/><body><p>Input your text here</p></body></html>"))
-		self.inputs.setPlaceholderText(_translate("MainWindow", "Input your text here"))
-		self.outputs.setToolTip(_translate("MainWindow", "<html><head/><body><p>Your translated text goes here</p></body></html>"))
-		self.outputs.setPlaceholderText(_translate("MainWindow", "Output text goes here"))
-		#Language List
+class MainWindow(QMainWindow):
+	def __init__(self):
+		super(MainWindow, self).__init__()
+		
+		self.setWindowTitle("Offline Translator")
+		
+		layout = QGridLayout()
+		
+		self.tl_button = QPushButton("Translate")
+		self.tl_button.clicked.connect(self.tl_run)
+		self.load_button = QPushButton("Load Model")
+		self.load_button.clicked.connect(self.load_run)
+		self.unload_button = QPushButton("Unload Model")
+		self.unload_button.clicked.connect(self.unload_run)
+		self.in_text = QPlainTextEdit()
+		self.in_text.setMinimumSize(QSize(380, 430))
+		self.in_text.setPlainText("Input your text here")
+		self.out_text = QPlainTextEdit()
+		self.out_text.setMinimumSize(QSize(380, 430))
+		self.out_text.setPlainText("Your translated text goes here")
+		#Languages List
+		self.lang_list = QComboBox()
+		global lang_id
+		lang_id = 0
 		self.lang_list.addItem("Japanese to English")
 		self.lang_list.addItem("English to Japanese")
 		self.lang_list.addItem("Chinese to English")
@@ -193,13 +72,98 @@ class Ui_MainWindow(object):
 		self.lang_list.addItem("English to Indonesia")
 		self.lang_list.addItem("Vietnam to English")
 		self.lang_list.addItem("English to Vietnam")
-		self.lang_list.addItem("JA to EN MBart")
+		self.lang_list.addItem("Japanese to English MBart")
+		self.lang_list.currentIndexChanged.connect(self.lang_sel)
+		
+		#Layout Settings
+		layout.addWidget(self.lang_list, 0, 0, 1, 2)
+		layout.addWidget(self.load_button, 2, 0, 1, 1)
+		layout.addWidget(self.unload_button, 2, 1, 1, 1)
+		layout.addWidget(self.tl_button, 3, 0, 1, 2)
+		layout.addWidget(self.in_text, 4, 0, 1, 1)
+		layout.addWidget(self.out_text,4, 1, 1, 1)
+		
+		widget = QWidget()
+		widget.setLayout(layout)
+		self.setCentralWidget(widget)
+	
+	def lang_sel(self, i):
+		global lang_id
+		lang_id = i
+		
+	def load_run(self):
+		global mname
+		if lang_id == 0:
+			mname = "Helsinki-NLP/opus-mt-ja-en"
+			print("Japanese to English Selected")
+		elif lang_id == 1:
+			mname = "models/Helsinki-NLP/opus-mt-en-ja"
+			print ("English to Japanese Selected")
+		elif lang_id == 2:
+			mname = "models/Helsinki-NLP/opus-mt-zh-en"
+			print("Chinese to English Selected")
+		elif lang_id == 3:
+			mname = "models/Helsinki-NLP/opus-mt-en-zh"
+			print("English to Chinese Selected")
+		elif lang_id == 4:
+			mname = "models/Helsinki-NLP/opus-mt-id-en"
+			print("Indonesia to English Selected")
+		elif lang_id == 5:
+			mname = "models/Helsinki-NLP/opus-mt-en-id"
+			print("English to Indonesia Selected")
+		elif lang_id == 6:
+			mname = "models/Helsinki-NLP/opus-mt-vi-en"
+			print("Vietnam to English Selected")
+		elif lang_id == 7:
+			mname = "models/Helsinki-NLP/opus-mt-en-vi"
+			print("English to Vietnam Selected")
+		elif lang_id == 8:
+			mname = "models/ken11/mbart-ja-en"
+			print("Japanese to English MBart Selected")
+		self.thread = QThread()
+		self.worker = Worker()
+		self.worker.moveToThread(self.thread)
+		self.thread.started.connect(self.worker.load_job)
+		self.worker.finished.connect(self.thread.quit)
+		self.worker.finished.connect(self.worker.deleteLater)
+		self.thread.finished.connect(self.thread.deleteLater)
+		
+		self.thread.start()
 
-if __name__ == "__main__":
-	import sys
+		self.load_button.setEnabled(False)
+		self.worker.finished.connect(lambda: self.load_button.setEnabled(True))
+
+	def unload_run(self):
+		global mname
+		global tokenizer
+		global model
+		mname = " "
+		tokenizer = " "
+		model = " "
+		gc.collect(2)
+		print("Model Unloaded")
+		
+	def tl_run(self):
+		global tl_input
+		tl_input = self.in_text.toPlainText()
+		print("Translating")
+		
+		self.thread = QThread()
+		self.worker = Worker()
+		self.worker.moveToThread(self.thread)
+		self.thread.started.connect(self.worker.tl_job)
+		self.worker.finished.connect(self.thread.quit)
+		self.worker.finished.connect(self.worker.deleteLater)
+		self.thread.finished.connect(self.thread.deleteLater)
+		
+		self.thread.start()
+		
+		self.tl_button.setEnabled(False)
+		self.thread.finished.connect(lambda: self.tl_button.setEnabled(True))
+		self.thread.finished.connect(lambda: self.out_text.setPlainText(tl_output))
+		
+if __name__ == '__main__' :
 	app = QApplication(sys.argv)
-	MainWindow = QMainWindow()
-	ui = Ui_MainWindow()
-	ui.setupUi(MainWindow)
-	MainWindow.show()
+	window = MainWindow()
+	window.show()
 	sys.exit(app.exec())
