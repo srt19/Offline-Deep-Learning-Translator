@@ -1,10 +1,11 @@
+import os
 import sys
 import gc
 from PyQt6.QtCore import QSize, QObject, QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-	QGridLayout, QLabel, QPushButton, QPlainTextEdit, QTextBrowser, QComboBox, QWidget, QApplication, QMainWindow, QStatusBar, QFrame
+	QGridLayout, QLabel, QMessageBox, QPushButton, QPlainTextEdit, QTextBrowser, QComboBox, QWidget, QApplication, QMainWindow, QStatusBar, QFrame
 )
 
 class Worker(QObject):
@@ -128,14 +129,6 @@ class MainWindow(QMainWindow):
 		widget.setFont(font)
 		self.setCentralWidget(widget)
 		
-		about_button = QAction("&About", self)
-		about_button.triggered.connect(self.about_window)
-		
-		menu = self.menuBar()
-		
-		file_menu = menu.addMenu("&File")
-		file_menu.addAction(about_button)
-		
 		self.statusbar = QStatusBar()
 		self.setStatusBar(self.statusbar)
 		self.statuslabel = QLabel()
@@ -144,11 +137,6 @@ class MainWindow(QMainWindow):
 		self.modellabel.setText("No model loaded")
 		self.statusbar.addPermanentWidget(self.statuslabel)
 		self.statusbar.addPermanentWidget(self.modellabel)
-
-	def about_window(self, checked):
-		if self.about is None:
-			self.about = AboutWindow()
-		self.about.show()
 	
 	def lang_sel(self, i):
 		global lang_id
@@ -157,32 +145,36 @@ class MainWindow(QMainWindow):
 	def load_run(self):
 		global mname
 		if lang_id == 0:
-			mname = "models/Helsinki-NLP/opus-mt-ja-en"
+			mname = "./models/Helsinki-NLP/opus-mt-ja-en"
 			self.modellabel.setText("Japanese to English")
 		elif lang_id == 1:
-			mname = "models/Helsinki-NLP/opus-mt-en-ja"
+			mname = "./models/Helsinki-NLP/opus-mt-en-ja"
 			self.modellabel.setText("English to Japanese")
 		elif lang_id == 2:
-			mname = "models/Helsinki-NLP/opus-mt-zh-en"
+			mname = "./models/Helsinki-NLP/opus-mt-zh-en"
 			self.modellabel.setText("Chinese to English")
 		elif lang_id == 3:
-			mname = "models/Helsinki-NLP/opus-mt-en-zh"
+			mname = "./models/Helsinki-NLP/opus-mt-en-zh"
 			self.modellabel.setText("English to Chinese")
 		elif lang_id == 4:
-			mname = "models/Helsinki-NLP/opus-mt-id-en"
+			mname = "./models/Helsinki-NLP/opus-mt-id-en"
 			self.modellabel.setText("Indonesia to English")
 		elif lang_id == 5:
-			mname = "models/Helsinki-NLP/opus-mt-en-id"
+			mname = "./models/Helsinki-NLP/opus-mt-en-id"
 			self.modellabel.setText("English to Indonesia")
 		elif lang_id == 6:
-			mname = "models/Helsinki-NLP/opus-mt-vi-en"
+			mname = "./models/Helsinki-NLP/opus-mt-vi-en"
 			self.modellabel.setText("Vietnam to English")
 		elif lang_id == 7:
-			mname = "models/Helsinki-NLP/opus-mt-en-vi"
+			mname = "./models/Helsinki-NLP/opus-mt-en-vi"
 			self.modellabel.setText("English to Vietnam")
 		elif lang_id == 8:
-			mname = "models/ken11/mbart-ja-en"
+			mname = "./models/ken11/mbart-ja-en"
 			self.modellabel.setText("Japanese to English MBart")
+		isExist = os.path.exists(mname)
+		if isExist == False:
+			self.no_file()
+			return
 		self.thread = QThread()
 		self.worker = Worker()
 		self.worker.moveToThread(self.thread)
@@ -197,6 +189,14 @@ class MainWindow(QMainWindow):
 		self.statuslabel.setText("Loading Model Files")
 		self.thread.finished.connect(lambda: self.statuslabel.setText("Ready"))
 		self.thread.finished.connect(lambda: self.load_button.setEnabled(True))
+	
+	def no_file(self):
+		button = QMessageBox.warning(
+			self,
+			"Model Files Not Found",
+			"Please make sure you have downloaded the model files and placed in the right models folder.",
+			buttons=QMessageBox.StandardButton.Ok,
+		)
 
 	def unload_run(self):
 		global mname
