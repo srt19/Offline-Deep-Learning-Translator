@@ -17,6 +17,6 @@ Currently only support MarianMT
 * Run the main.py
 
 # GUI
-![Main Window Unloaded](/img/OTL_1.jpg?raw=True "Main Window Unloaded")
-![Main Window Translating](/img/OTL_2.jpg?raw=True "Main Window Translating")
-![RAM Usage](/img/OTL_3.jpg?raw=True "RAM Usage")
+![Main Window Unloaded](/main/img/OTL_1.jpg?raw=True "Main Window Unloaded")
+![Main Window Translating](/main/img/OTL_2.jpg?raw=True "Main Window Translating")
+![RAM Usage](/main/img/OTL_3.jpg?raw=True "RAM Usage")
