@@ -15,3 +15,8 @@ Currently only support MarianMT
 * Clone this repository
 * Install the requirements
 * Run the main.py
+
+# GUI
+![Main Window Unloaded](/repository/img/OTL_1.jpg?raw=True "Main Window Unloaded")
+![Main Window Translating](/repository/img/OTL_2.jpg?raw=True "Main Window Translating")
+![RAM Usage](/repository/img/OTL_3.jpg?raw=True "RAM Usage")
